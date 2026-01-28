@@ -4,16 +4,25 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Selecciona la acción (apply/destroy)'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+        - apply
+        - destroy
 
 jobs:
   terraform:
     name: "Terraform"
     runs-on: ubuntu-latest
-    # Movemos las credenciales aquí para que todo el JOB las tenga
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: "us-west-2" # Asegúrate que sea la misma de tu Bucket S3
+      AWS_REGION: "us-west-2"
 
     steps:
       - name: Checkout
@@ -23,15 +32,13 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        # Forzamos a Terraform a usar las credenciales del entorno
         run: terraform init
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Plan
         run: terraform plan
 
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve
+      - name: Terraform Action
+        # Aquí usamos la opción que elegiste en el botón (o apply por defecto en el push)
+        run: |
+          ACTION=${{ github.event.inputs.action || 'apply' }}
+          terraform $ACTION -auto-approve

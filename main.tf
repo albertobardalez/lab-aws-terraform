@@ -126,6 +126,6 @@ resource "aws_instance" "servidor_web" {
               echo "<h1>¡Laboratorio DevOps 2026: Despliegue Perfecto!</h1>" > /var/www/html/index.html
               EOF
 
-  tags = { Name = "Servidor-Ubuntu-Final" }
+  tags = { Name = "Servidor-Creado-Por-GitHub" }
 }
 #comentario
